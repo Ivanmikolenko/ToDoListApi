@@ -47,7 +47,7 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,16 +55,9 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      - name: Set Kubernetes context
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
-
       - name: Deploy with Helm
         run: |
           NAMESPACE="${{ needs.build-and-push.outputs.branch }}"
-          # main -> prod
           if [ "$NAMESPACE" = "main" ]; then NAMESPACE="prod"; fi
 
           helm upgrade --install todo-$NAMESPACE ./todo-chart \
