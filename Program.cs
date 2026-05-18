@@ -38,11 +38,8 @@ app.Use(async (context, next) =>
     Console.WriteLine($"← {DateTime.Now:HH:mm:ss} {context.Request.Method} {context.Request.Path} → {context.Response.StatusCode}");
 });
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("AllowAll");
 app.UseAuthorization();
@@ -71,8 +68,8 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-Console.WriteLine("🚀 Server starting on: http://localhost:5169");
-Console.WriteLine("📊 Swagger UI: http://localhost:5169/swagger");
-app.Urls.Add("http://localhost:5169");
-app.Urls.Add("http://0.0.0.0:5169");
+var port = Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://+:8080";
+Console.WriteLine($"🚀 Server starting on: {port}");
+Console.WriteLine($"📊 Swagger UI: {port}/swagger");
+app.Urls.Add(port);
 app.Run();
