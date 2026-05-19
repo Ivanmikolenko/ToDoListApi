@@ -1,0 +1,37 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: app-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: cluster.rules
+      rules:
+        - alert: NodeNotReady
+          expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node {{ $labels.node }} is not ready"
+            description: "Node {{ $labels.node }} has been NotReady for more than 2 minutes."
+
+        - alert: PodCrashLoopBackOff
+          expr: rate(kube_pod_container_status_restarts_total[10m]) > 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.pod }} is crash looping"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restart count is increasing."
+
+        - alert: HighMemoryUsage
+          expr: (sum(container_memory_working_set_bytes{container!=""}) / sum(kube_node_status_allocatable{resource="memory"})) * 100 > 80
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Cluster memory usage above 80%"
+            description: "Total memory usage is {{ $value }}% of allocatable memory."
